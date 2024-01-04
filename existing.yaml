@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+  creationTimestamp: "2023-12-29T03:00:02Z"
+  generation: 1
+  labels:
+    app: javaapp
+  name: javaapp
+  namespace: default
+  resourceVersion: "6849"
+  uid: 850300de-e88e-44fc-bc50-3e4d39160437
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 3
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: javaapp
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: javaapp
+    spec:
+      containers:
+      - image: us-central1-docker.pkg.dev/celtic-acumen-406716/images-repo/javaapp:v1
+        imagePullPolicy: IfNotPresent
+        name: javaapp-1
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
