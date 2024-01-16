@@ -8,6 +8,15 @@ pipeline {
     }
     environment {
         TOMCAT_CREDS = credentials('tomcat_creds') // this is having my username and password
+        //NEXUS_CREDS = credentials('nexus_creds')
+        NEXUS_VERSION = 'nexus3'
+        // http or https
+        NEXUS_PROTOCOL = "http"
+        // This is the Nexus Instance URL
+        NEXUS_URL = "34.125.89.53:8081"
+        //34.34.56.78:8081
+        NEXUS_REPO = "spring-repo"
+        //http://34.125.89.53:8081/repository/sivaaaa-repo/
     }
     stages {
         stage ('clone'){
@@ -38,6 +47,38 @@ pipeline {
                 fileNames = findFiles(glob: "target/*.${pom.packaging}");
                 // Just for testing Purpose pring down varipus arguments
                 echo "${fileNames[0].name} ${fileNames[0].path}"
+                // I would like to get the path 
+                artifactPath = fileNames[0].path;
+                // I will verify if this artifacts exists
+                artifactExists = fileExists artifactPath; // True | False
+                echo "Does Artifact Exists: ${artifactExists}"
+                echo "************** Printing If Artifact Exists **************"
+                if(artifactExists) {
+                    echo "************** Artifact is Available **************"
+                    echo "File is: ${artifactPath}, Package is: ${pom.packaging}, Version is: ${pom.version}, GroupID: ${pom.groupId}"
+                    nexusArtifactUploader(
+                        nexusVersion: "$env.NEXUS_VERSION", //${NEXUS_VERSION}
+                        protocol: "$env.NEXUS_PROTOCOL",
+                        nexusUrl: "$env.NEXUS_URL",
+                        groupId: "${pom.groupId}",
+                        //version: "${BUILD_NUMBER}",
+                        version: "${pom.version}",
+                        credentialsId: 'nexus_creds',
+                        repository: "$env.NEXUS_REPO",
+                        artifacts: [
+                            [
+                            artifactId: pom.artifactId,
+                            classifier: '',
+                            file: artifactPath,
+                            pom: pom.packaging
+                            ]
+                        ]
+                    )
+                }
+                else {
+                    error "************** Artifact ${artifactPath} is not avalable"
+                }
+
                 }
             }
         }
@@ -49,3 +90,5 @@ pipeline {
         }
     }
 }
+
+//curl -v -u admin:admin123 --upload-file target/*.war http://nexusURL:nexusPORT/repository/myRepository/com/my/group/myArtifact/1.0.0-RC1/siva-repo.jar
